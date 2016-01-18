@@ -1,4 +1,13 @@
 -
+  I force recomputation of stock.location parent left/right
+-
+  !python {model: stock.location}:
+    # we need this because when running the tests at install time as is done on
+    # Travis, the hook performing this operation for the new stock reservation
+    # location is run after the test execution. This causes the stock level
+    # computation to be wrong at the time the tests are run.
+    self._parent_store_compute(cr)
+-
   I create a product to test the stock reservation
 -
  !record {model: product.product, id: product_gelato}:
@@ -33,6 +42,8 @@
     order_line:
       - product_id: product_gelato
         product_uom_qty: 4
+      - product_id: product_gelato
+        product_uom_qty: 1
 -
   I call the wizard to reserve the products of the sales order
 -
@@ -48,7 +59,7 @@
 -
   !python {model: product.product, id: product_gelato}: |
     from nose.tools import *
-    assert_almost_equal(self.virtual_available, 6.0)
+    assert_almost_equal(self.virtual_available, 5.0)
 -
   I release the sales order's reservations
 -
